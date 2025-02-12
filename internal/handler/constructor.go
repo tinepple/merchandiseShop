@@ -7,8 +7,9 @@ import (
 )
 
 type Handler struct {
-	router  *gin.Engine
-	storage Storage
+	router      *gin.Engine
+	storage     Storage
+	authService authService
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -16,20 +17,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) initRoutes() {
-	h.router.GET("/test", h.Test)
+	h.router.POST("/api/auth", h.Auth)
 }
 
-func New(storage Storage) *Handler {
+func New(storage Storage, authService authService) *Handler {
 	h := &Handler{
-		router:  gin.New(),
-		storage: storage,
+		router:      gin.New(),
+		storage:     storage,
+		authService: authService,
 	}
 
 	h.initRoutes()
 
 	return h
-}
-
-func (h *Handler) Test(c *gin.Context) {
-	c.JSON(http.StatusOK, "lol")
 }

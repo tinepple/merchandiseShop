@@ -2,6 +2,7 @@ package main
 
 import (
 	"MerchandiseShop/internal/handler"
+	"MerchandiseShop/internal/services/auth_service"
 	"MerchandiseShop/internal/storage"
 	"fmt"
 	"github.com/jmoiron/sqlx"
@@ -32,7 +33,12 @@ func main() {
 		log.Fatalf("Failed to create storage: %v", err)
 	}
 
-	apiHandler := handler.New(storageRepo)
+	authService := auth_service.New()
+	if err != nil {
+		log.Fatalf("Failed to create auth service: %v", err)
+	}
+
+	apiHandler := handler.New(storageRepo, authService)
 	if err != nil {
 		log.Fatalf("Failed to create handler: %v", err)
 	}
