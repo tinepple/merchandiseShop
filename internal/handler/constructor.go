@@ -18,6 +18,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) initRoutes() {
 	h.router.POST("/api/auth", h.Auth)
+
+	h.router.GET("/api/buy/:item", h.ItemBuy)
 }
 
 func New(storage Storage, authService authService) *Handler {

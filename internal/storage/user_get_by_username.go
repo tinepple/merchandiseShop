@@ -2,13 +2,8 @@ package storage
 
 import (
 	"context"
-	"database/sql"
-	"errors"
-
 	sq "github.com/Masterminds/squirrel"
 )
-
-var ErrNotFound = errors.New("row not found")
 
 func (s *Storage) GetUserByUsername(ctx context.Context, username string) (User, error) {
 	query, params, err := sq.Select(
@@ -31,10 +26,7 @@ func (s *Storage) GetUserByUsername(ctx context.Context, username string) (User,
 		&dest.Password,
 	)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return User{}, ErrNotFound
-		}
-		return User{}, err
+		return User{}, handleSQLError(err)
 	}
 
 	return dest, nil

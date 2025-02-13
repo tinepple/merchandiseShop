@@ -42,7 +42,6 @@ func (h *Handler) Auth(c *gin.Context) {
 			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
-
 	} else {
 		if !utils.CheckPasswordHash(req.Password, user.Password) {
 			c.AbortWithStatus(http.StatusBadRequest)
