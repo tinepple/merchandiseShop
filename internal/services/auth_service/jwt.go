@@ -13,7 +13,7 @@ const tokenTTL = 99999
 
 func (s *service) GenerateJWT(userID int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  userID,
+		"id":  strconv.Itoa(userID),
 		"iat": time.Now().Unix(),
 		"eat": time.Now().Add(time.Second * time.Duration(tokenTTL)).Unix(),
 	})

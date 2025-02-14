@@ -7,3 +7,8 @@ type AuthRequest struct {
 type AuthResponse struct {
 	Token string `json:"token"`
 }
+
+type SendCoinsRequest struct {
+	ToUser string `json:"toUser"`
+	Amount int    `json:"amount"`
+}

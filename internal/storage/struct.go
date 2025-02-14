@@ -11,3 +11,11 @@ type Item struct {
 	Name  string `db:"name"`
 	Price int    `db:"price"`
 }
+
+type Transaction struct {
+	UserIDFrom         int `db:"user_id_from"`
+	UserIDTo           int `db:"user_id_to"`
+	Amount             int `db:"amount"`
+	NewBalanceUserFrom int
+	NewBalanceUserTo   int
+}
