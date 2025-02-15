@@ -13,48 +13,55 @@ func (h *Handler) Auth(c *gin.Context) {
 	var req AuthRequest
 
 	if err := c.BindJSON(&req); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		h.handleErr(c, fmt.Errorf("%w: error parsing body", validationError))
 		return
 	}
 
 	if req.Password == "" || req.Username == "" {
-		c.AbortWithStatus(http.StatusBadRequest)
+		h.handleErr(c, fmt.Errorf("%w: username or password is empty", validationError))
 		return
 	}
 
-	pass, _ := utils.HashPassword(req.Password)
-	fmt.Println("hashedPass:", pass)
-
 	user, err := h.storage.GetUserByUsername(c, req.Username)
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 
 	if errors.Is(err, storage.ErrNotFound) {
 		hashedPassword, err := utils.HashPassword(req.Password)
 		if err != nil {
-			c.AbortWithStatus(http.StatusInternalServerError)
+			h.handleErr(c, err)
 			return
 		}
 		user, err = h.storage.CreateUser(c, req.Username, hashedPassword)
 		if err != nil {
-			c.AbortWithStatus(http.StatusInternalServerError)
+			h.handleErr(c, err)
 			return
 		}
 	} else {
 		if !utils.CheckPasswordHash(req.Password, user.Password) {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 	}
 
 	token, err := h.authService.GenerateJWT(user.ID)
 	if err != nil {
+		h.handleErr(c, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, AuthResponse{
 		Token: token,
 	})
+}
+
+func (h *Handler) getUserIDFromHeaders(ctx *gin.Context) (int, error) {
+	userID, err := h.authService.GetUserID(utils.GetTokenFromRequest(ctx))
+	if err != nil || userID <= 0 {
+		return 0, authorizationError
+	}
+
+	return userID, nil
 }

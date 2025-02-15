@@ -38,3 +38,7 @@ type InfoResponse struct {
 	Inventory   []Inventory `json:"inventory"`
 	CoinHistory CoinHistory `json:"coinHistory"`
 }
+
+type ErrorResponse struct {
+	Errors string `json:"errors"`
+}

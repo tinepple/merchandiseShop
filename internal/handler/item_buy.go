@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"MerchandiseShop/internal/handler/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -10,47 +9,36 @@ import (
 func (h *Handler) ItemBuy(c *gin.Context) {
 	itemValue := c.Param("item")
 	if itemValue == "" {
-		fmt.Println("param is empty")
-		c.AbortWithStatus(http.StatusBadRequest)
+		h.handleErr(c, fmt.Errorf("%w: item param is empty", validationError))
 		return
 	}
 
-	userID, err := h.authService.GetUserID(utils.GetTokenFromRequest(c))
+	userID, err := h.getUserIDFromHeaders(c)
 	if err != nil {
-		fmt.Println(fmt.Errorf("authService.GetUserID: %w", err))
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	if userID == 0 {
-		fmt.Println("userID is empty")
-		c.AbortWithStatus(http.StatusBadRequest)
+		h.handleErr(c, err)
 		return
 	}
 
 	item, err := h.storage.GetItem(c, itemValue)
 	if err != nil {
-		fmt.Println(fmt.Errorf("h.storage.GetItem: %w", err))
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 
 	userBalance, err := h.storage.GetUserBalance(c, userID)
 	if err != nil {
-		fmt.Println(fmt.Errorf("h.storage.GetUserBalance: %w", err))
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 
 	if userBalance < item.Price {
-		c.AbortWithStatus(http.StatusBadRequest)
+		h.handleErr(c, fmt.Errorf("%w: not enough coins on balance", validationError))
 		return
 	}
 
 	err = h.storage.CreatePurchase(c, userID, item.ID, userBalance-item.Price)
 	if err != nil {
-		fmt.Println(fmt.Errorf("h.storage.CreatePurchase: %w", err))
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"MerchandiseShop/internal/handler/utils"
 	"MerchandiseShop/internal/storage"
 	"errors"
 	"fmt"
@@ -10,59 +9,50 @@ import (
 )
 
 func (h *Handler) SendCoin(c *gin.Context) {
-	userID, err := h.authService.GetUserID(utils.GetTokenFromRequest(c))
+	userID, err := h.getUserIDFromHeaders(c)
 	if err != nil {
-		fmt.Println(fmt.Errorf("authService.GetUserID: %w", err))
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	if userID == 0 {
-		fmt.Println("userID is empty")
-		c.AbortWithStatus(http.StatusBadRequest)
+		h.handleErr(c, err)
 		return
 	}
 
 	var req SendCoinsRequest
 
 	if err := c.BindJSON(&req); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		h.handleErr(c, fmt.Errorf("%w: error parsing body", validationError))
 		return
 	}
 
 	if req.Amount == 0 {
-		fmt.Println("amount is empty")
-		c.AbortWithStatus(http.StatusBadRequest)
+		h.handleErr(c, fmt.Errorf("%w: amount is empty", validationError))
 		return
 	}
 
 	userBalance, err := h.storage.GetUserBalance(c, userID)
 	if err != nil {
-		fmt.Println(fmt.Errorf("h.storage.GetUserBalance: %w", err))
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 
 	if userBalance < req.Amount {
-		c.AbortWithStatus(http.StatusBadRequest)
+		h.handleErr(c, fmt.Errorf("%w: not enough coins on balance", validationError))
 		return
 	}
 
 	toUser, err := h.storage.GetUserByUsername(c, req.ToUser)
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 
 	balanceUserFrom, err := h.storage.GetUserBalance(c, userID)
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 
 	balanceUserTo, err := h.storage.GetUserBalance(c, toUser.ID)
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 
@@ -74,8 +64,7 @@ func (h *Handler) SendCoin(c *gin.Context) {
 
 	err = h.storage.CreateTransaction(c, transaction, balanceUserFrom-req.Amount, balanceUserTo+req.Amount)
 	if err != nil {
-		fmt.Println(fmt.Errorf("h.storage.CreateTransaction: %w", err))
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 

@@ -1,31 +1,21 @@
 package handler
 
 import (
-	"MerchandiseShop/internal/handler/utils"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
 func (h *Handler) GetInfo(c *gin.Context) {
-	userID, err := h.authService.GetUserID(utils.GetTokenFromRequest(c))
+	userID, err := h.getUserIDFromHeaders(c)
 	if err != nil {
-		fmt.Println(fmt.Errorf("authService.GetUserID: %w", err))
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	if userID == 0 {
-		fmt.Println("userID is empty")
-		c.AbortWithStatus(http.StatusBadRequest)
+		h.handleErr(c, err)
 		return
 	}
 
 	//получить баланс
 	userBalance, err := h.storage.GetUserBalance(c, userID)
 	if err != nil {
-		fmt.Println(fmt.Errorf("h.storage.GetUserBalance: %w", err))
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 
@@ -34,8 +24,7 @@ func (h *Handler) GetInfo(c *gin.Context) {
 
 	purchases, err := h.storage.GetPurchasesByUserID(c, userID)
 	if err != nil {
-		fmt.Println(fmt.Errorf("h.storage.GetPurchasesByUserID: %w", err))
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 	for _, purchase := range purchases {
@@ -48,8 +37,7 @@ func (h *Handler) GetInfo(c *gin.Context) {
 	//история транзакций
 	transactions, err := h.storage.GetTransactionsByUserID(c, userID)
 	if err != nil {
-		fmt.Println(fmt.Errorf("h.storage.GetTransactionsByUserID: %w", err))
-		c.AbortWithStatus(http.StatusInternalServerError)
+		h.handleErr(c, err)
 		return
 	}
 
