@@ -6,7 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func (s *Storage) CreateTransaction(ctx context.Context, transaction Transaction) error {
+func (s *Storage) CreateTransaction(ctx context.Context, transaction Transaction, NewBalanceUserFrom int, NewBalanceUserTo int) error {
 	tx, err := s.db.Beginx()
 	if err != nil {
 		return err
@@ -22,12 +22,12 @@ func (s *Storage) CreateTransaction(ctx context.Context, transaction Transaction
 		return err
 	}
 
-	err = s.updateUserBalance(ctx, tx, transaction.UserIDFrom, transaction.NewBalanceUserFrom)
+	err = s.updateUserBalance(ctx, tx, transaction.UserIDFrom, NewBalanceUserFrom)
 	if err != nil {
 		return err
 	}
 
-	err = s.updateUserBalance(ctx, tx, transaction.UserIDTo, transaction.NewBalanceUserTo)
+	err = s.updateUserBalance(ctx, tx, transaction.UserIDTo, NewBalanceUserTo)
 	if err != nil {
 		return err
 	}

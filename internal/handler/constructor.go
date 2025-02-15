@@ -21,6 +21,7 @@ func (h *Handler) initRoutes() {
 
 	h.router.GET("/api/buy/:item", h.ItemBuy)
 	h.router.POST("/api/sendCoin", h.SendCoin)
+	h.router.GET("/api/info", h.GetInfo)
 }
 
 func New(storage Storage, authService authService) *Handler {

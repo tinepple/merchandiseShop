@@ -30,6 +30,12 @@ func (h *Handler) SendCoin(c *gin.Context) {
 		return
 	}
 
+	if req.Amount == 0 {
+		fmt.Println("amount is empty")
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
 	userBalance, err := h.storage.GetUserBalance(c, userID)
 	if err != nil {
 		fmt.Println(fmt.Errorf("h.storage.GetUserBalance: %w", err))
@@ -49,17 +55,24 @@ func (h *Handler) SendCoin(c *gin.Context) {
 	}
 
 	balanceUserFrom, err := h.storage.GetUserBalance(c, userID)
-	balanceUserTo, err := h.storage.GetUserBalance(c, toUser.ID)
-
-	transaction := storage.Transaction{
-		UserIDFrom:         userID,
-		UserIDTo:           toUser.ID,
-		Amount:             req.Amount,
-		NewBalanceUserFrom: balanceUserFrom - req.Amount,
-		NewBalanceUserTo:   balanceUserTo + req.Amount,
+	if err != nil && !errors.Is(err, storage.ErrNotFound) {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
-	err = h.storage.CreateTransaction(c, transaction)
+	balanceUserTo, err := h.storage.GetUserBalance(c, toUser.ID)
+	if err != nil && !errors.Is(err, storage.ErrNotFound) {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	transaction := storage.Transaction{
+		UserIDFrom: userID,
+		UserIDTo:   toUser.ID,
+		Amount:     req.Amount,
+	}
+
+	err = h.storage.CreateTransaction(c, transaction, balanceUserFrom-req.Amount, balanceUserTo+req.Amount)
 	if err != nil {
 		fmt.Println(fmt.Errorf("h.storage.CreateTransaction: %w", err))
 		c.AbortWithStatus(http.StatusInternalServerError)

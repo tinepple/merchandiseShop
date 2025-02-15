@@ -11,7 +11,9 @@ type Storage interface {
 	GetUserBalance(ctx context.Context, userID int) (int, error)
 	GetItem(ctx context.Context, name string) (storage.Item, error)
 	CreatePurchase(ctx context.Context, userID, itemID, newBalance int) error
-	CreateTransaction(ctx context.Context, transaction storage.Transaction) error
+	CreateTransaction(ctx context.Context, transaction storage.Transaction, NewBalanceUserFrom int, NewBalanceUserTo int) error
+	GetPurchasesByUserID(ctx context.Context, userID int) ([]storage.Inventory, error)
+	GetTransactionsByUserID(ctx context.Context, userID int) ([]storage.CoinsHistory, error)
 }
 
 type authService interface {
