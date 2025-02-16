@@ -9,7 +9,7 @@ import (
 var (
 	authorizationError = errors.New("произошла ошибка авторизации")
 	validationError    = errors.New("произошла ошибка валидации")
-	internalError      = errors.New("произошла внутрення ошибка")
+	internalError      = errors.New("произошла внутренняя ошибка")
 )
 
 func (h *Handler) handleErr(c *gin.Context, err error) {
