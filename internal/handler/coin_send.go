@@ -27,24 +27,18 @@ func (h *Handler) SendCoin(c *gin.Context) {
 		return
 	}
 
-	userBalance, err := h.storage.GetUserBalance(c, userID)
+	balanceUserFrom, err := h.storage.GetUserBalance(c, userID)
 	if err != nil {
 		h.handleErr(c, err)
 		return
 	}
 
-	if userBalance < req.Amount {
+	if balanceUserFrom < req.Amount {
 		h.handleErr(c, fmt.Errorf("%w: not enough coins on balance", validationError))
 		return
 	}
 
 	toUser, err := h.storage.GetUserByUsername(c, req.ToUser)
-	if err != nil && !errors.Is(err, storage.ErrNotFound) {
-		h.handleErr(c, err)
-		return
-	}
-
-	balanceUserFrom, err := h.storage.GetUserBalance(c, userID)
 	if err != nil && !errors.Is(err, storage.ErrNotFound) {
 		h.handleErr(c, err)
 		return

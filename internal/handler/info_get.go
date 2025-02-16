@@ -12,14 +12,12 @@ func (h *Handler) GetInfo(c *gin.Context) {
 		return
 	}
 
-	//получить баланс
 	userBalance, err := h.storage.GetUserBalance(c, userID)
 	if err != nil {
 		h.handleErr(c, err)
 		return
 	}
 
-	//список покупок
 	var inventories []Inventory
 
 	purchases, err := h.storage.GetPurchasesByUserID(c, userID)
